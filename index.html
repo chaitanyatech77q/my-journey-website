@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Journey So Far | From Circuits to Code</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="background">
+        <div class="stars"></div>
+        <div class="twinkling"></div>
+        <div class="clouds"></div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">🚀 My Journey</div>
+            <ul class="nav-menu">
+                <li><a href="#home" class="nav-link">Home</a></li>
+                <li><a href="#education" class="nav-link">Education</a></li>
+                <li><a href="#internship" class="nav-link">Internship</a></li>
+                <li><a href="#freelancing" class="nav-link">Freelancing</a></li>
+                <li><a href="#mern" class="nav-link">MERN Stack</a></li>
+                <li><a href="#content" class="nav-link">Content Creation</a></li>
+                <li><a href="#gallery" class="nav-link">Gallery</a></li>
+                <li><button id="admin-toggle" class="admin-btn">🔐 Admin</button></li>
+            </ul>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title">🚀 My Journey So Far</h1>
+            <h2 class="hero-subtitle">From Circuits to Code</h2>
+            <p class="hero-description">A journey of exploration, learning, and growth in the world of technology</p>
+            <a href="#education" class="cta-button">Explore My Journey</a>
+        </div>
+    </section>
+
+    <!-- Education Section -->
+    <section id="education" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">🎓 2022 | Electronics & Communication Engineering</h2>
+                <p class="section-description">Started my journey with a curiosity to understand how things work — from circuits to systems. That curiosity soon evolved into a passion for coding, AI, and technology innovation.</p>
+            </div>
+            <div class="image-upload-card">
+                <h3>📸 Education Photos</h3>
+                <p>Upload photos from your ECE journey</p>
+                <div class="upload-area" data-category="education">
+                    <input type="file" id="education-upload" accept="image/*" multiple>
+                    <label for="education-upload" class="upload-label">
+                        <span class="upload-icon">📷</span>
+                        <span>Click to upload or drag and drop</span>
+                    </label>
+                    <div class="uploaded-images" id="education-images"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Internship Section -->
+    <section id="internship" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">💡 2023 – 2024 | Internship in AI & Data Science (6 Months)</h2>
+                <p class="section-description">Transitioned into the world of data and intelligence.</p>
+                <ul class="feature-list">
+                    <li>🔹 Gained hands-on experience in Python, SQL, Machine Learning, and Deep Learning</li>
+                    <li>🔹 Worked with real-world datasets (Kaggle) and performed data cleaning, preprocessing, and modeling</li>
+                    <li>🔹 Built predictive models and learned how to turn data into insights</li>
+                </ul>
+            </div>
+            <div class="image-upload-card">
+                <h3>📸 Internship Photos</h3>
+                <p>Share your internship experience photos</p>
+                <div class="upload-area" data-category="internship">
+                    <input type="file" id="internship-upload" accept="image/*" multiple>
+                    <label for="internship-upload" class="upload-label">
+                        <span class="upload-icon">📷</span>
+                        <span>Click to upload or drag and drop</span>
+                    </label>
+                    <div class="uploaded-images" id="internship-images"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Freelancing Section -->
+    <section id="freelancing" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">🧠 2024 – 2025 | Freelancing & On-Job Training</h2>
+                <p class="section-description">Delivered 20+ academic projects for B.Tech students across domains.</p>
+                <ul class="feature-list">
+                    <li>🔹 Specialized in ML/DL-based academic and industry-inspired projects</li>
+                    <li>🔹 Developed models for image captioning, sentiment analysis, and data classification</li>
+                    <li>🔹 Strengthened my understanding of end-to-end project workflows, from data to deployment</li>
+                </ul>
+            </div>
+            <div class="image-upload-card">
+                <h3>📸 Freelancing Project Photos</h3>
+                <p>Upload photos explaining your freelancing projects</p>
+                <div class="upload-area" data-category="freelancing">
+                    <input type="file" id="freelancing-upload" accept="image/*" multiple>
+                    <label for="freelancing-upload" class="upload-label">
+                        <span class="upload-icon">📷</span>
+                        <span>Click to upload or drag and drop</span>
+                    </label>
+                    <div class="uploaded-images" id="freelancing-images"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- MERN Stack Section -->
+    <section id="mern" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">💻 2024 – 2025 | Learning the MERN Stack</h2>
+                <p class="section-description">To merge my AI and web knowledge, I began exploring Full Stack Development:</p>
+                <ul class="feature-list">
+                    <li>🔹 Built RESTful APIs using Node.js & Express.js</li>
+                    <li>🔹 Worked with SQLite and MongoDB for backend data handling</li>
+                    <li>🔹 Designed responsive UIs using React.js, HTML, CSS, and Bootstrap</li>
+                    <li>🔹 Developed small-scale web dashboards integrating AI features</li>
+                </ul>
+            </div>
+            <div class="image-upload-card">
+                <h3>📸 MERN Stack Project Photos</h3>
+                <p>Share your web development journey photos</p>
+                <div class="upload-area" data-category="mern">
+                    <input type="file" id="mern-upload" accept="image/*" multiple>
+                    <label for="mern-upload" class="upload-label">
+                        <span class="upload-icon">📷</span>
+                        <span>Click to upload or drag and drop</span>
+                    </label>
+                    <div class="uploaded-images" id="mern-images"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Content Creation Section -->
+    <section id="content" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">🎥 2024 – Present | Content Creation Journey</h2>
+                <p class="section-description">Started my page "Tech with Chay" to share everything I learn in tech —</p>
+                <ul class="feature-list">
+                    <li>🔹 Topics: Python, AI, Full Stack, and Industry Insights</li>
+                    <li>🔹 Platforms: Instagram, YouTube, and LinkedIn</li>
+                    <li>🔹 Goal: To make tech learning simpler and more practical for beginners</li>
+                </ul>
+            </div>
+            <div class="image-upload-card">
+                <h3>📸 Content Creation Photos</h3>
+                <p>Upload photos from your content creation journey</p>
+                <div class="upload-area" data-category="content">
+                    <input type="file" id="content-upload" accept="image/*" multiple>
+                    <label for="content-upload" class="upload-label">
+                        <span class="upload-icon">📷</span>
+                        <span>Click to upload or drag and drop</span>
+                    </label>
+                    <div class="uploaded-images" id="content-images"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Gallery Section -->
+    <section id="gallery" class="section">
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">📸 Journey Gallery</h2>
+                <p class="section-description">All photos from every step of my journey</p>
+            </div>
+            <div class="gallery-grid" id="gallery-grid">
+                <!-- Images will be dynamically added here -->
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>🌱 What Drives Me</h3>
+                    <p>The excitement of turning ideas into working products — and inspiring others to learn along the way.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>✨ Next Goal</h3>
+                    <p>Build AI-powered web applications that combine intelligence, design, and real-world functionality.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>🔗 Connect</h3>
+                    <p>💬 From ECE to AI & Full Stack — it's been a journey of exploration, learning, and growth.</p>
+                    <p>📌 Follow for updates & insights: <strong>@techwithchay</strong></p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 My Journey So Far. Built with ❤️ and deployed on Netlify.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Admin Login Modal -->
+    <div id="admin-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>🔐 Admin Login</h2>
+            <p>Enter password to enable image uploads</p>
+            <input type="password" id="admin-password" placeholder="Enter admin password" autocomplete="off">
+            <button id="admin-login-btn" class="modal-btn">Login</button>
+            <p class="modal-hint">Enter your admin password to upload images</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
