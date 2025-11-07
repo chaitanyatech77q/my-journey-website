@@ -79,6 +79,16 @@ const uploadedImages = {
     content: []
 };
 
+function isHostingConfigured() {
+    return Boolean(CLOUDINARY_CLOUD_NAME && CLOUDINARY_UPLOAD_PRESET && JSONBIN_BIN_ID);
+}
+
+function ensureHostingConfigured() {
+    if (isHostingConfigured()) return true;
+    alert('Image hosting is not configured yet. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET, and JSONBIN_BIN_ID in script.js to make uploads visible to everyone.');
+    return false;
+}
+
 // Initialize file inputs for each category
 categories.forEach(category => {
     const input = document.getElementById(`${category}-upload`);
@@ -89,11 +99,12 @@ categories.forEach(category => {
 
     // Click to upload (only if admin)
     label.addEventListener('click', () => {
-        if (isAdminMode) {
-            input.click();
-        } else {
+        if (!isAdminMode) {
             showAdminModal();
+            return;
         }
+        if (!ensureHostingConfigured()) return;
+        input.click();
     });
 
     // Drag and drop (only if admin)
@@ -121,6 +132,7 @@ categories.forEach(category => {
             showAdminModal();
             return;
         }
+        if (!ensureHostingConfigured()) return;
         
         const files = Array.from(e.dataTransfer.files);
         handleFiles(files, category, container);
@@ -129,6 +141,7 @@ categories.forEach(category => {
     // File input change
     input.addEventListener('change', (e) => {
         if (!isAdminMode) return;
+        if (!ensureHostingConfigured()) return;
         const files = Array.from(e.target.files);
         handleFiles(files, category, container);
     });
@@ -136,6 +149,10 @@ categories.forEach(category => {
 
 // Handle uploaded files
 function handleFiles(files, category, container) {
+    if (!isHostingConfigured()) {
+        alert('Hosting not configured. Configure Cloudinary and JSONBin in script.js to proceed.');
+        return;
+    }
     files.forEach(async (file) => {
         if (!file.type.startsWith('image/')) return;
 
@@ -157,38 +174,13 @@ function handleFiles(files, category, container) {
                 await saveManifest();
                 saveToLocalStorage(); // optional local cache
             } catch (err) {
-                console.warn('Cloud upload failed, falling back to local preview.', err);
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const imageData = {
-                        id: Date.now() + Math.random(),
-                        src: e.target.result,
-                        name: file.name
-                    };
-                    uploadedImages[category].push(imageData);
-                    displayImage(imageData, category, container);
-                    updateGallery();
-                    saveToLocalStorage();
-                };
-                reader.readAsDataURL(file);
+                console.error('Cloud upload failed.', err);
+                alert('Upload failed. Please check your Cloudinary credentials in script.js.');
             }
             return;
         }
 
-        // No hosting configured → local preview only (visible only to you)
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const imageData = {
-                id: Date.now() + Math.random(),
-                src: e.target.result,
-                name: file.name
-            };
-            uploadedImages[category].push(imageData);
-            displayImage(imageData, category, container);
-            updateGallery();
-            saveToLocalStorage();
-        };
-        reader.readAsDataURL(file);
+        alert('Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME and CLOUDINARY_UPLOAD_PRESET in script.js.');
     });
 }
 
@@ -336,12 +328,21 @@ async function uploadToCloudinary(file, category) {
 }
 
 async function loadManifest() {
-    if (!JSONBIN_BIN_ID || !JSONBIN_API_KEY) throw new Error('Manifest not configured');
-    const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
-        headers: {
-            'X-Master-Key': JSONBIN_API_KEY
+    if (!JSONBIN_BIN_ID) throw new Error('Manifest not configured');
+    // Try with key (private bin), then without key (public bin)
+    let res = null;
+    try {
+        if (JSONBIN_API_KEY) {
+            res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
+                headers: { 'X-Master-Key': JSONBIN_API_KEY }
+            });
         }
-    });
+        if (!res || !res.ok) {
+            res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`);
+        }
+    } catch (e) {
+        throw new Error('Manifest load failed');
+    }
     if (!res.ok) throw new Error('Manifest load failed');
     const data = await res.json();
     const parsed = data.record || {};
