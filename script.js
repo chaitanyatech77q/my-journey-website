@@ -193,7 +193,7 @@ function displayImage(imageData, category, container) {
 
     imageItem.innerHTML = `
         <img src="${imageData.src}" alt="${imageData.name}">
-        <button class="remove-image" onclick="removeImage('${imageData.id}', '${category}')" title="Remove image">×</button>
+        <button class="remove-image" style="${isAdminMode ? '' : 'display:none;'}" onclick="removeImage('${imageData.id}', '${category}')" title="Remove image">×</button>
     `;
 
     container.appendChild(imageItem);
@@ -216,6 +216,8 @@ function removeImage(imageId, category) {
 
     updateGallery();
     saveToLocalStorage();
+    // Persist to shared manifest if configured
+    try { saveManifest(); } catch (_) {}
 }
 
 // Update gallery with all images
@@ -241,6 +243,7 @@ function updateGallery() {
         galleryItem.className = 'gallery-item generated';
         galleryItem.innerHTML = `
             <img src="${imageData.src}" alt="${imageData.name}">
+            ${isAdminMode ? `<button class="gallery-remove" title="Remove image" onclick="removeImage('${imageData.id}', '${imageData.category}')">×</button>` : ''}
         `;
         galleryGrid.appendChild(galleryItem);
     });
@@ -447,6 +450,11 @@ function enableAdminMode() {
     document.querySelectorAll('.view-only-message').forEach(msg => {
         msg.remove();
     });
+
+    // Show delete buttons
+    document.querySelectorAll('.remove-image').forEach(btn => {
+        btn.style.display = '';
+    });
 }
 
 // Disable Admin Mode
@@ -470,6 +478,11 @@ function disableAdminMode() {
             message.innerHTML = '<p>👀 View Only - Login as admin to upload images</p>';
             card.appendChild(message);
         }
+    });
+
+    // Hide delete buttons
+    document.querySelectorAll('.remove-image').forEach(btn => {
+        btn.style.display = 'none';
     });
 }
 
