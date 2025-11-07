@@ -1,6 +1,14 @@
 // Admin Configuration - CHANGE THIS PASSWORD!
 const ADMIN_PASSWORD = 'Chaitanya@7726'; // Change this to your desired password
 
+// Hosting Configuration (fill these to make uploads visible to everyone)
+// 1) Create a free Cloudinary account → create an unsigned upload preset
+// 2) Create a free JSONBin bin (public read) → get BIN ID and API key
+const CLOUDINARY_CLOUD_NAME = '';
+const CLOUDINARY_UPLOAD_PRESET = '';
+const JSONBIN_BIN_ID = '';
+const JSONBIN_API_KEY = '';
+
 // Admin State
 let isAdminMode = false;
 
@@ -128,25 +136,59 @@ categories.forEach(category => {
 
 // Handle uploaded files
 function handleFiles(files, category, container) {
-    files.forEach(file => {
-        if (file.type.startsWith('image/')) {
-            const reader = new FileReader();
-            
-            reader.onload = (e) => {
+    files.forEach(async (file) => {
+        if (!file.type.startsWith('image/')) return;
+
+        // If Cloudinary config is provided, upload to Cloudinary for globally visible URLs
+        if (CLOUDINARY_CLOUD_NAME && CLOUDINARY_UPLOAD_PRESET) {
+            try {
+                const uploaded = await uploadToCloudinary(file, category);
                 const imageData = {
                     id: Date.now() + Math.random(),
-                    src: e.target.result,
-                    name: file.name
+                    src: uploaded.secureUrl,
+                    name: file.name,
+                    provider: 'cloudinary',
+                    publicId: uploaded.publicId,
+                    category
                 };
-
                 uploadedImages[category].push(imageData);
                 displayImage(imageData, category, container);
                 updateGallery();
-                saveToLocalStorage();
-            };
-
-            reader.readAsDataURL(file);
+                await saveManifest();
+                saveToLocalStorage(); // optional local cache
+            } catch (err) {
+                console.warn('Cloud upload failed, falling back to local preview.', err);
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const imageData = {
+                        id: Date.now() + Math.random(),
+                        src: e.target.result,
+                        name: file.name
+                    };
+                    uploadedImages[category].push(imageData);
+                    displayImage(imageData, category, container);
+                    updateGallery();
+                    saveToLocalStorage();
+                };
+                reader.readAsDataURL(file);
+            }
+            return;
         }
+
+        // No hosting configured → local preview only (visible only to you)
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const imageData = {
+                id: Date.now() + Math.random(),
+                src: e.target.result,
+                name: file.name
+            };
+            uploadedImages[category].push(imageData);
+            displayImage(imageData, category, container);
+            updateGallery();
+            saveToLocalStorage();
+        };
+        reader.readAsDataURL(file);
     });
 }
 
@@ -280,6 +322,53 @@ function loadFromLocalStorage() {
     }
 }
 
+// ---- Remote Hosting Helpers ----
+async function uploadToCloudinary(file, category) {
+    const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`;
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+    formData.append('folder', `my-journey/${category}`);
+    const res = await fetch(url, { method: 'POST', body: formData });
+    if (!res.ok) throw new Error('Cloudinary upload failed');
+    const data = await res.json();
+    return { secureUrl: data.secure_url, publicId: data.public_id };
+}
+
+async function loadManifest() {
+    if (!JSONBIN_BIN_ID || !JSONBIN_API_KEY) throw new Error('Manifest not configured');
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
+        headers: {
+            'X-Master-Key': JSONBIN_API_KEY
+        }
+    });
+    if (!res.ok) throw new Error('Manifest load failed');
+    const data = await res.json();
+    const parsed = data.record || {};
+    categories.forEach(category => {
+        if (parsed[category]) {
+            uploadedImages[category] = parsed[category];
+            const container = document.getElementById(`${category}-images`);
+            parsed[category].forEach(imageData => {
+                displayImage(imageData, category, container);
+            });
+        }
+    });
+    updateGallery();
+}
+
+async function saveManifest() {
+    if (!JSONBIN_BIN_ID || !JSONBIN_API_KEY) return; // allow working without manifest
+    await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Master-Key': JSONBIN_API_KEY
+        },
+        body: JSON.stringify(uploadedImages)
+    });
+}
+
 // Initialize Admin Modal Elements
 function initAdminModal() {
     adminModal = document.getElementById('admin-modal');
@@ -386,6 +475,9 @@ function disableAdminMode() {
 document.addEventListener('DOMContentLoaded', () => {
     initAdminModal();
     checkAdminStatus();
-    loadFromLocalStorage();
+    // Try to load from remote manifest first; fallback to local cache
+    loadManifest().catch(() => {
+        loadFromLocalStorage();
+    });
 });
 
