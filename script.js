@@ -4,10 +4,10 @@ const ADMIN_PASSWORD = 'Chaitanya@7726'; // Change this to your desired password
 // Hosting Configuration (fill these to make uploads visible to everyone)
 // 1) Create a free Cloudinary account → create an unsigned upload preset
 // 2) Create a free JSONBin bin (public read) → get BIN ID and API key
-const CLOUDINARY_CLOUD_NAME = '';
-const CLOUDINARY_UPLOAD_PRESET = '';
-const JSONBIN_BIN_ID = '';
-const JSONBIN_API_KEY = '';
+const CLOUDINARY_CLOUD_NAME = 'chaitanya-journey';
+const CLOUDINARY_UPLOAD_PRESET = 'chaitu';
+const JSONBIN_BIN_ID = '7726';
+const JSONBIN_API_KEY = '7726';
 
 // Admin State
 let isAdminMode = false;
@@ -221,7 +221,8 @@ function removeImage(imageId, category) {
 // Update gallery with all images
 function updateGallery() {
     const galleryGrid = document.getElementById('gallery-grid');
-    galleryGrid.innerHTML = '';
+    // Remove only dynamically generated items, keep any static items in HTML
+    Array.from(galleryGrid.querySelectorAll('.gallery-item.generated')).forEach(el => el.remove());
 
     // Collect all images from all categories
     const allImages = [];
@@ -237,7 +238,7 @@ function updateGallery() {
     // Display in gallery
     allImages.forEach(imageData => {
         const galleryItem = document.createElement('div');
-        galleryItem.className = 'gallery-item';
+        galleryItem.className = 'gallery-item generated';
         galleryItem.innerHTML = `
             <img src="${imageData.src}" alt="${imageData.name}">
         `;
