@@ -68,7 +68,7 @@ netlify deploy --prod
 
 **Important**: The website has admin protection to prevent unauthorized uploads.
 
-- **Default Password**: `admin123`
+- **Default Password**: `Chaitanya@7726` (as set in script.js)
 - **To Change Password**: Edit `ADMIN_PASSWORD` in `script.js` (line 2)
 - **How to Login**: Click the "🔐 Admin" button in the navigation bar
 - **Admin Mode**: Once logged in, you can upload images. Click the button again to logout.
@@ -95,4 +95,3 @@ Once deployed, your site will be available at: `https://your-site-name.netlify.a
 ---
 
 Built with ❤️ for sharing my journey in tech!
-
