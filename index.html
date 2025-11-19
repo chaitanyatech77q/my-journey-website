@@ -3,261 +3,147 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Journey So Far | From Circuits to Code</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>AI Polyglot Agent | India-Ready Translator</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Animated Background -->
-    <div class="background">
-        <div class="stars"></div>
-        <div class="twinkling"></div>
-        <div class="clouds"></div>
-    </div>
-
-    <!-- Navigation -->
-    <nav class="navbar">
-        <div class="nav-container">
-            <div class="logo">🚀 My Journey</div>
-            <ul class="nav-menu">
-                <li><a href="#home" class="nav-link">Home</a></li>
-                <li><a href="#education" class="nav-link">Education</a></li>
-                <li><a href="#internship" class="nav-link">Internship</a></li>
-                <li><a href="#freelancing" class="nav-link">Freelancing</a></li>
-                <li><a href="#mern" class="nav-link">MERN Stack</a></li>
-                <li><a href="#content" class="nav-link">Content Creation</a></li>
-                <li><a href="#gallery" class="nav-link">Gallery</a></li>
-                <li><button id="admin-toggle" class="admin-btn">🔐 Admin</button></li>
-            </ul>
-            <div class="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
+    <div class="grid-bg"></div>
+    <main class="translator-shell">
+        <header class="hero">
+            <p class="hero-badge">⚡ AI Agent Ops</p>
+            <h1>Yellow &amp; Black Polyglot Translator</h1>
+            <p class="hero-subtitle">
+                Upload <strong>text, images, or audio</strong>, let the agent extract the script, then push it through
+                <strong>Google Translate API</strong> into any Indian language and hear the result instantly.
+            </p>
+            <div class="primary-actions">
+                <button id="languageBtn" class="primary-btn">Select Languages</button>
+                <button id="translateBtn" class="primary-btn accent" disabled>Generate Translation</button>
             </div>
-        </div>
-    </nav>
+            <p class="hero-hint">Two primary controls only: pick languages, then translate everything you drop in.</p>
+        </header>
 
-    <!-- Hero Section -->
-    <section id="home" class="hero">
-        <div class="hero-content">
-            <h1 class="hero-title">🚀 My Journey So Far</h1>
-            <h2 class="hero-subtitle">From Circuits to Code</h2>
-            <p class="hero-description">A journey of exploration, learning, and growth in the world of technology</p>
-            <a href="#education" class="cta-button">Explore My Journey</a>
-        </div>
-    </section>
-
-    <!-- Education Section -->
-    <section id="education" class="section">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">🎓 2022 | Electronics & Communication Engineering</h2>
-                <p class="section-description">Started my journey with a curiosity to understand how things work — from circuits to systems. That curiosity soon evolved into a passion for coding, AI, and technology innovation.</p>
-            </div>
-            <div class="image-upload-card">
-                <h3>📸 Education Photos</h3>
-                <p>Upload photos from your ECE journey</p>
-                <div class="upload-area" data-category="education">
-                    <input type="file" id="education-upload" accept="image/*" multiple>
-                    <label for="education-upload" class="upload-label">
-                        <span class="upload-icon">📷</span>
-                        <span>Click to upload or drag and drop</span>
+        <section class="workspace">
+            <div class="col">
+                <div class="card upload-card">
+                    <div class="card-header">
+                        <div>
+                            <p class="eyebrow">Ingress</p>
+                            <h2>Drop Any Script</h2>
+                        </div>
+                        <span class="badge">Image · Text · Audio</span>
+                    </div>
+                    <p class="card-copy">
+                        Drag &amp; drop or browse. For live speech click speak. Images are OCR’d with multilingual Tesseract,
+                        audio is transcribed with Whisper/OpenAI/Groq when you provide a key, and text stays as-is.
+                    </p>
+                    <label for="filePicker" class="drop-zone" id="dropZone">
+                        <input id="filePicker" type="file" multiple accept="image/*,.txt,.md,.srt,.vtt,.doc,.docx,.pdf,audio/*">
+                        <span>Click or drop files here</span>
+                        <small>Max 25 MB each. Everything stays client-side.</small>
                     </label>
-                    <div class="uploaded-images" id="education-images">
-                        <img src="assets/images/education-1.jpg" alt="Education photo 1" loading="lazy">
-                        <img src="assets/images/education-2.jpg" alt="Education photo 2" loading="lazy">
+                    <div class="mic-tools">
+                        <button id="micBtn" class="ghost-btn">🎙️ Speak</button>
+                        <button id="stopMicBtn" class="ghost-btn danger" disabled>⏹ Stop</button>
+                        <p id="micStatus">Mic idle.</p>
                     </div>
                 </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- Internship Section -->
-    <section id="internship" class="section">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">💡 2023 – 2024 | Internship in AI & Data Science (6 Months)</h2>
-                <p class="section-description">Transitioned into the world of data and intelligence.</p>
-                <ul class="feature-list">
-                    <li>🔹 Gained hands-on experience in Python, SQL, Machine Learning, and Deep Learning</li>
-                    <li>🔹 Worked with real-world datasets (Kaggle) and performed data cleaning, preprocessing, and modeling</li>
-                    <li>🔹 Built predictive models and learned how to turn data into insights</li>
-                </ul>
+                <div class="card text-card">
+                    <div class="card-header compact">
+                        <h3>AI Workspace</h3>
+                        <span id="charCount">0 characters</span>
+                    </div>
+                    <textarea id="sourceText" placeholder="Drop any script, speak aloud, or paste raw text..."></textarea>
+                </div>
+
+                <div class="card agent-card">
+                    <div class="card-header compact">
+                        <div>
+                            <h3>Agent Timeline</h3>
+                            <p>Every move the agent makes, logged.</p>
+                        </div>
+                        <span class="agent-state" id="agentState">Idle</span>
+                    </div>
+                    <ul id="agentLog"></ul>
+                </div>
             </div>
-            <div class="image-upload-card">
-                <h3>📸 Internship Photos</h3>
-                <p>Share your internship experience photos</p>
-                <div class="upload-area" data-category="internship">
-                    <input type="file" id="internship-upload" accept="image/*" multiple>
-                    <label for="internship-upload" class="upload-label">
-                        <span class="upload-icon">📷</span>
-                        <span>Click to upload or drag and drop</span>
-                    </label>
-                    <div class="uploaded-images" id="internship-images">
-                        <img src="assets/images/internship-1.jpg" alt="Internship photo 1" loading="lazy">
+
+            <div class="col">
+                <div class="card config-card" id="languagePanel">
+                    <div class="card-header compact">
+                        <h3>Language Route</h3>
+                        <span class="chip">18 Indian languages</span>
+                    </div>
+                    <label class="field-label">Source</label>
+                    <select id="sourceLang"></select>
+                    <label class="field-label">Target</label>
+                    <select id="targetLang"></select>
+                    <label class="field-label">Google Translate API key (optional)</label>
+                    <input type="password" id="googleKey" placeholder="Paste key or leave blank for public endpoint">
+                    <label class="field-label">Speech-to-Text key (optional, OpenAI/Groq)</label>
+                    <input type="password" id="speechKey" placeholder="Needed only for audio file transcription">
+                    <label class="field-label">Speech provider</label>
+                    <select id="speechProvider">
+                        <option value="groq" selected>Groq Whisper (recommended)</option>
+                        <option value="openai">OpenAI Whisper</option>
+                    </select>
+                    <p class="panel-note">
+                        Without keys the app still works for text + OCR and uses Google Translator’s public endpoint. Keys stay in your browser.
+                    </p>
+                </div>
+
+                <div class="card result-card">
+                    <div class="card-header compact">
+                        <h3>Translation Card</h3>
+                        <button id="downloadBtn" class="ghost-btn">⬇️ Save text</button>
+                    </div>
+                    <div class="result-body">
+                        <p id="translatedText">The translated text and phonetics will appear here.</p>
+                        <div class="audio-stack">
+                            <audio id="translatedAudio" controls preload="none"></audio>
+                            <button id="speakBtn" class="ghost-btn" disabled>🔊 Play via Google Voice</button>
+                        </div>
+                        <div class="chip-row" id="languageChips"></div>
                     </div>
                 </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- Freelancing Section -->
-    <section id="freelancing" class="section">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">🧠 2024 – 2025 | Freelancing & On-Job Training</h2>
-                <p class="section-description">Delivered 20+ academic projects for B.Tech students across domains.</p>
-                <ul class="feature-list">
-                    <li>🔹 Specialized in ML/DL-based academic and industry-inspired projects</li>
-                    <li>🔹 Developed models for image captioning, sentiment analysis, and data classification</li>
-                    <li>🔹 Strengthened my understanding of end-to-end project workflows, from data to deployment</li>
-                </ul>
-            </div>
-            <div class="image-upload-card">
-                <h3>📸 Freelancing Project Photos</h3>
-                <p>Upload photos explaining your freelancing projects</p>
-                <div class="upload-area" data-category="freelancing">
-                    <input type="file" id="freelancing-upload" accept="image/*" multiple>
-                    <label for="freelancing-upload" class="upload-label">
-                        <span class="upload-icon">📷</span>
-                        <span>Click to upload or drag and drop</span>
-                    </label>
-                    <div class="uploaded-images" id="freelancing-images">
-                        <img src="assets/images/freelancing-1.jpg" alt="Freelancing photo 1" loading="lazy">
-                    </div>
+                <div class="card helper-card">
+                    <h3>Multi-Modal Support</h3>
+                    <ul>
+                        <li>Images → OCR via Tesseract (eng + Indic scripts)</li>
+                        <li>Audio → live mic (Web Speech) or file via Whisper API</li>
+                        <li>Text → instant translation with Google endpoint + AI agent logging</li>
+                        <li>Responsive grid keeps the two-button workflow intact on every screen</li>
+                    </ul>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+    </main>
 
-    <!-- MERN Stack Section -->
-    <section id="mern" class="section">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">💻 2024 – 2025 | Learning the MERN Stack</h2>
-                <p class="section-description">To merge my AI and web knowledge, I began exploring Full Stack Development:</p>
-                <ul class="feature-list">
-                    <li>🔹 Built RESTful APIs using Node.js & Express.js</li>
-                    <li>🔹 Worked with SQLite and MongoDB for backend data handling</li>
-                    <li>🔹 Designed responsive UIs using React.js, HTML, CSS, and Bootstrap</li>
-                    <li>🔹 Developed small-scale web dashboards integrating AI features</li>
-                </ul>
-            </div>
-            <div class="image-upload-card">
-                <h3>📸 MERN Stack Project Photos</h3>
-                <p>Share your web development journey photos</p>
-                <div class="upload-area" data-category="mern">
-                    <input type="file" id="mern-upload" accept="image/*" multiple>
-                    <label for="mern-upload" class="upload-label">
-                        <span class="upload-icon">📷</span>
-                        <span>Click to upload or drag and drop</span>
-                    </label>
-                    <div class="uploaded-images" id="mern-images">
-                        <img src="assets/images/mern-1.jpg" alt="MERN project photo 1" loading="lazy">
-                    </div>
-                </div>
-            </div>
+    <dialog id="languageDialog">
+        <div class="dialog-header">
+            <h3>Select Languages</h3>
+            <button id="closeDialog" class="ghost-btn">✕</button>
         </div>
-    </section>
-
-    <!-- Content Creation Section -->
-    <section id="content" class="section">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">🎥 2024 – Present | Content Creation Journey</h2>
-                <p class="section-description">Started my page "Tech with Chay" to share everything I learn in tech —</p>
-                <ul class="feature-list">
-                    <li>🔹 Topics: Python, AI, Full Stack, and Industry Insights</li>
-                    <li>🔹 Platforms: Instagram, YouTube, and LinkedIn</li>
-                    <li>🔹 Goal: To make tech learning simpler and more practical for beginners</li>
-                </ul>
+        <div class="dialog-body">
+            <div class="dialog-group">
+                <label>Source language</label>
+                <select id="dialogSource"></select>
             </div>
-            <div class="image-upload-card">
-                <h3>📸 Content Creation Photos</h3>
-                <p>Upload photos from your content creation journey</p>
-                <div class="upload-area" data-category="content">
-                    <input type="file" id="content-upload" accept="image/*" multiple>
-                    <label for="content-upload" class="upload-label">
-                        <span class="upload-icon">📷</span>
-                        <span>Click to upload or drag and drop</span>
-                    </label>
-                    <div class="uploaded-images" id="content-images">
-                        <img src="assets/images/content-1.jpg" alt="Content creation photo 1" loading="lazy">
-                    </div>
-                </div>
+            <div class="dialog-group">
+                <label>Target language</label>
+                <select id="dialogTarget"></select>
             </div>
+            <button id="saveLanguages" class="primary-btn accent full">Use these languages</button>
         </div>
-    </section>
+    </dialog>
 
-    <!-- Gallery Section -->
-    <section id="gallery" class="section">
-        <div class="container">
-            <div class="section-header">
-                <h2 class="section-title">📸 Journey Gallery</h2>
-                <p class="section-description">All photos from every step of my journey</p>
-            </div>
-            <div class="gallery-grid" id="gallery-grid">
-                <!-- Static images (always visible to everyone) -->
-                <div class="gallery-item"><img src="assets/images/education-1.jpg" alt="Education photo 1" loading="lazy"></div>
-                <div class="gallery-item"><img src="assets/images/internship-1.jpg" alt="Internship photo 1" loading="lazy"></div>
-                <div class="gallery-item"><img src="assets/images/freelancing-1.jpg" alt="Freelancing photo 1" loading="lazy"></div>
-                <div class="gallery-item"><img src="assets/images/mern-1.jpg" alt="MERN project photo 1" loading="lazy"></div>
-                <div class="gallery-item"><img src="assets/images/content-1.jpg" alt="Content creation photo 1" loading="lazy"></div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-content">
-                <div class="footer-section">
-                    <h3>🌱 What Drives Me</h3>
-                    <p>The excitement of turning ideas into working products — and inspiring others to learn along the way.</p>
-                </div>
-                <div class="footer-section">
-                    <h3>✨ Next Goal</h3>
-                    <p>Build AI-powered web applications that combine intelligence, design, and real-world functionality.</p>
-                </div>
-                <div class="footer-section">
-                    <h3>🔗 Connect With Me</h3>
-                    <div class="contact-links">
-                        <a href="https://wa.me/917729934148" target="_blank" class="contact-link">
-                            <span class="contact-icon">📱</span>
-                            <span>WhatsApp: +91 7729934148</span>
-                        </a>
-                        <a href="https://www.linkedin.com/in/chaitanya-geddam-59b999218/" target="_blank" class="contact-link">
-                            <span class="contact-icon">💼</span>
-                            <span>LinkedIn: Chaitanya Geddam</span>
-                        </a>
-                        <a href="https://www.instagram.com/tech_with_chay?igsh=NjJlaG5qOHhwNWVh" target="_blank" class="contact-link">
-                            <span class="contact-icon">📸</span>
-                            <span>Instagram: @techwithchay</span>
-                        </a>
-                    </div>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <p>&copy; 2025 My Journey So Far. Built with ❤️ and deployed on Netlify.</p>
-            </div>
-        </div>
-    </footer>
-
-    <!-- Admin Login Modal -->
-    <div id="admin-modal" class="modal">
-        <div class="modal-content">
-            <span class="close-modal">&times;</span>
-            <h2>🔐 Admin Login</h2>
-            <p>Enter password to enable image uploads</p>
-            <input type="password" id="admin-password" placeholder="Enter admin password" autocomplete="off">
-            <button id="admin-login-btn" class="modal-btn">Login</button>
-            <p class="modal-hint">Enter your admin password to upload images</p>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js" defer></script>
+    <script src="script.js" defer></script>
 </body>
 </html>
 

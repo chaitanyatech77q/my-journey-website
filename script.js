@@ -1,498 +1,510 @@
-// Admin Configuration - CHANGE THIS PASSWORD!
-const ADMIN_PASSWORD = 'Chaitanya@7726'; // Change this to your desired password
+const dom = {
+    languageBtn: document.getElementById('languageBtn'),
+    translateBtn: document.getElementById('translateBtn'),
+    sourceText: document.getElementById('sourceText'),
+    charCount: document.getElementById('charCount'),
+    dropZone: document.getElementById('dropZone'),
+    filePicker: document.getElementById('filePicker'),
+    micBtn: document.getElementById('micBtn'),
+    stopMicBtn: document.getElementById('stopMicBtn'),
+    micStatus: document.getElementById('micStatus'),
+    agentLog: document.getElementById('agentLog'),
+    agentState: document.getElementById('agentState'),
+    sourceLang: document.getElementById('sourceLang'),
+    targetLang: document.getElementById('targetLang'),
+    googleKey: document.getElementById('googleKey'),
+    speechKey: document.getElementById('speechKey'),
+    speechProvider: document.getElementById('speechProvider'),
+    resultText: document.getElementById('translatedText'),
+    resultAudio: document.getElementById('translatedAudio'),
+    speakBtn: document.getElementById('speakBtn'),
+    downloadBtn: document.getElementById('downloadBtn'),
+    languageChips: document.getElementById('languageChips'),
+    languageDialog: document.getElementById('languageDialog'),
+    dialogSource: document.getElementById('dialogSource'),
+    dialogTarget: document.getElementById('dialogTarget'),
+    closeDialog: document.getElementById('closeDialog'),
+    saveLanguages: document.getElementById('saveLanguages')
+};
 
-// Hosting Configuration (fill these to make uploads visible to everyone)
-// 1) Create a free Cloudinary account → create an unsigned upload preset
-// 2) Create a free JSONBin bin (public read) → get BIN ID and API key
-const CLOUDINARY_CLOUD_NAME = 'chaitanya-journey';
-const CLOUDINARY_UPLOAD_PRESET = 'chaitu';
-const JSONBIN_BIN_ID = '7726';
-const JSONBIN_API_KEY = '7726';
+const indiaLanguages = [
+    { code: 'auto', label: 'Auto Detect' },
+    { code: 'en', label: 'English' },
+    { code: 'hi', label: 'Hindi' },
+    { code: 'te', label: 'Telugu' },
+    { code: 'ta', label: 'Tamil' },
+    { code: 'kn', label: 'Kannada' },
+    { code: 'ml', label: 'Malayalam' },
+    { code: 'bn', label: 'Bengali' },
+    { code: 'gu', label: 'Gujarati' },
+    { code: 'mr', label: 'Marathi' },
+    { code: 'pa', label: 'Punjabi' },
+    { code: 'ur', label: 'Urdu' },
+    { code: 'or', label: 'Odia' },
+    { code: 'as', label: 'Assamese' },
+    { code: 'ne', label: 'Nepali' },
+    { code: 'sd', label: 'Sindhi' },
+    { code: 'ks', label: 'Kashmiri' },
+    { code: 'sa', label: 'Sanskrit' }
+];
 
-// Admin State
-let isAdminMode = false;
+const agent = (() => {
+    const MAX_LOGS = 30;
+    function log(message) {
+        if (!dom.agentLog) return;
+        const item = document.createElement('li');
+        const time = new Date().toLocaleTimeString();
+        item.innerHTML = `<strong>${time}</strong> — ${message}`;
+        dom.agentLog.prepend(item);
+        while (dom.agentLog.children.length > MAX_LOGS) {
+            dom.agentLog.removeChild(dom.agentLog.lastChild);
+        }
+    }
 
-// Check if admin mode is active (from localStorage)
-function checkAdminStatus() {
-    const adminStatus = localStorage.getItem('adminMode');
-    if (adminStatus === 'true') {
-        isAdminMode = true;
-        enableAdminMode();
-    } else {
-        disableAdminMode();
+    function setState(label) {
+        if (dom.agentState) dom.agentState.textContent = label;
+    }
+
+    return { log, setState };
+})();
+
+let recognition = null;
+let isMicActive = false;
+const speechLocaleMap = {
+    hi: 'hi-IN',
+    te: 'te-IN',
+    ta: 'ta-IN',
+    kn: 'kn-IN',
+    ml: 'ml-IN',
+    bn: 'bn-IN',
+    gu: 'gu-IN',
+    mr: 'mr-IN',
+    pa: 'pa-IN',
+    ur: 'ur-IN',
+    or: 'or-IN',
+    as: 'as-IN',
+    ne: 'ne-NP',
+    sd: 'sd-IN',
+    ks: 'ks-IN',
+    sa: 'sa-IN'
+};
+
+function initLanguageSelects() {
+    populateSelect(dom.sourceLang, true);
+    populateSelect(dom.targetLang, false);
+    populateSelect(dom.dialogSource, true);
+    populateSelect(dom.dialogTarget, false);
+    dom.sourceLang.value = 'auto';
+    dom.dialogSource.value = 'auto';
+    dom.targetLang.value = 'te';
+    dom.dialogTarget.value = 'te';
+    renderLanguageChips();
+}
+
+function populateSelect(select, allowAuto) {
+    if (!select) return;
+    select.innerHTML = '';
+    indiaLanguages.forEach(lang => {
+        if (!allowAuto && lang.code === 'auto') return;
+        const option = document.createElement('option');
+        option.value = lang.code;
+        option.textContent = lang.label;
+        select.appendChild(option);
+    });
+}
+
+function renderLanguageChips() {
+    if (!dom.languageChips) return;
+    dom.languageChips.innerHTML = '';
+    const sourceLabel = getLanguageLabel(dom.sourceLang.value);
+    const targetLabel = getLanguageLabel(dom.targetLang.value);
+    dom.languageChips.appendChild(createChip(`Source: ${sourceLabel}`));
+    dom.languageChips.appendChild(createChip(`Target: ${targetLabel}`));
+}
+
+function getLanguageLabel(code) {
+    const match = indiaLanguages.find(lang => lang.code === code);
+    return match ? match.label : code;
+}
+
+function createChip(text) {
+    const span = document.createElement('span');
+    span.className = 'chip';
+    span.textContent = text;
+    return span;
+}
+
+function updateCharCount() {
+    if (dom.charCount) {
+        const length = dom.sourceText.value.trim().length;
+        dom.charCount.textContent = `${length} characters`;
     }
 }
 
-// Mobile Navigation Toggle
-const hamburger = document.querySelector('.hamburger');
-const navMenu = document.querySelector('.nav-menu');
-const navLinks = document.querySelectorAll('.nav-link');
-
-hamburger.addEventListener('click', () => {
-    hamburger.classList.toggle('active');
-    navMenu.classList.toggle('active');
-});
-
-navLinks.forEach(link => {
-    link.addEventListener('click', () => {
-        hamburger.classList.remove('active');
-        navMenu.classList.remove('active');
-    });
-});
-
-// Smooth scroll for navigation links
-document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-    anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const target = document.querySelector(this.getAttribute('href'));
-        if (target) {
-            target.scrollIntoView({
-                behavior: 'smooth',
-                block: 'start'
-            });
-        }
-    });
-});
-
-// Admin Modal Functions (defined early)
-let adminModal, adminToggle, adminPasswordInput, adminLoginBtn, closeModal;
-
-function showAdminModal() {
-    if (!adminModal) return;
-    adminModal.classList.add('active');
-    if (adminPasswordInput) adminPasswordInput.focus();
+function updateTranslateButton() {
+    dom.translateBtn.disabled = dom.sourceText.value.trim().length === 0;
 }
 
-function hideAdminModal() {
-    if (!adminModal) return;
-    adminModal.classList.remove('active');
-    if (adminPasswordInput) adminPasswordInput.value = '';
+function appendToSource(text, label = 'input') {
+    if (!text) return;
+    const separator = dom.sourceText.value.trim() ? '\n\n' : '';
+    dom.sourceText.value += `${separator}${text}`;
+    agent.log(`Added ${label} (${text.length} chars) to workspace.`);
+    updateCharCount();
+    updateTranslateButton();
 }
 
-// Image Upload Functionality
-const categories = ['education', 'internship', 'freelancing', 'mern', 'content'];
-const uploadedImages = {
-    education: [],
-    internship: [],
-    freelancing: [],
-    mern: [],
-    content: []
-};
-
-function isHostingConfigured() {
-    return Boolean(CLOUDINARY_CLOUD_NAME && CLOUDINARY_UPLOAD_PRESET && JSONBIN_BIN_ID);
+function openLanguageDialog() {
+    dom.dialogSource.value = dom.sourceLang.value;
+    dom.dialogTarget.value = dom.targetLang.value;
+    if (typeof dom.languageDialog.showModal === 'function') {
+        dom.languageDialog.showModal();
+    } else {
+        dom.languageDialog.setAttribute('open', 'true');
+    }
 }
 
-function ensureHostingConfigured() {
-    if (isHostingConfigured()) return true;
-    alert('Image hosting is not configured yet. Set CLOUDINARY_CLOUD_NAME, CLOUDINARY_UPLOAD_PRESET, and JSONBIN_BIN_ID in script.js to make uploads visible to everyone.');
-    return false;
+function closeLanguageDialog() {
+    if (typeof dom.languageDialog.close === 'function') {
+        dom.languageDialog.close();
+    } else {
+        dom.languageDialog.removeAttribute('open');
+    }
 }
 
-// Initialize file inputs for each category
-categories.forEach(category => {
-    const input = document.getElementById(`${category}-upload`);
-    const container = document.getElementById(`${category}-images`);
-    const uploadArea = input.closest('.upload-area');
-    const label = uploadArea.querySelector('.upload-label');
-    const card = uploadArea.closest('.image-upload-card');
+function wireDialogs() {
+    dom.languageBtn.addEventListener('click', openLanguageDialog);
+    dom.closeDialog.addEventListener('click', closeLanguageDialog);
+    dom.saveLanguages.addEventListener('click', () => {
+        dom.sourceLang.value = dom.dialogSource.value;
+        dom.targetLang.value = dom.dialogTarget.value;
+        renderLanguageChips();
+        closeLanguageDialog();
+        agent.log(`Languages locked to ${getLanguageLabel(dom.sourceLang.value)} ➜ ${getLanguageLabel(dom.targetLang.value)}.`);
+        updateTranslateButton();
+    });
+}
 
-    // Click to upload (only if admin)
-    label.addEventListener('click', () => {
-        if (!isAdminMode) {
-            showAdminModal();
-            return;
+function wireInputs() {
+    dom.sourceText.addEventListener('input', () => {
+        updateCharCount();
+        updateTranslateButton();
+    });
+
+    dom.filePicker.addEventListener('change', (event) => {
+        handleFiles(Array.from(event.target.files));
+        event.target.value = '';
+    });
+
+    dom.dropZone.addEventListener('dragover', (event) => {
+        event.preventDefault();
+        dom.dropZone.classList.add('active');
+    });
+
+    dom.dropZone.addEventListener('dragleave', () => dom.dropZone.classList.remove('active'));
+
+    dom.dropZone.addEventListener('drop', (event) => {
+        event.preventDefault();
+        dom.dropZone.classList.remove('active');
+        handleFiles(Array.from(event.dataTransfer.files));
+    });
+}
+
+async function handleFiles(files) {
+    for (const file of files) {
+        try {
+            if (file.type.startsWith('text/') || /\.(txt|md|srt|vtt)$/i.test(file.name)) {
+                const text = await file.text();
+                appendToSource(text, file.name);
+            } else if (file.type.startsWith('image/')) {
+                await extractTextFromImage(file);
+            } else if (file.type.startsWith('audio/')) {
+                await transcribeAudioFile(file);
+            } else {
+                agent.log(`Unsupported file "${file.name}". Only image, text, and audio are accepted.`);
+            }
+        } catch (error) {
+            console.error(error);
+            agent.log(`Failed to ingest ${file.name}: ${error.message}`);
         }
-        if (!ensureHostingConfigured()) return;
-        input.click();
-    });
+    }
+}
 
-    // Drag and drop (only if admin)
-    uploadArea.addEventListener('dragover', (e) => {
-        if (!isAdminMode) {
-            e.preventDefault();
-            return;
-        }
-        e.preventDefault();
-        label.style.borderColor = '#ec4899';
-        label.style.background = 'rgba(255, 255, 255, 0.15)';
-    });
-
-    uploadArea.addEventListener('dragleave', () => {
-        label.style.borderColor = '';
-        label.style.background = '';
-    });
-
-    uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        label.style.borderColor = '';
-        label.style.background = '';
-        
-        if (!isAdminMode) {
-            showAdminModal();
-            return;
-        }
-        if (!ensureHostingConfigured()) return;
-        
-        const files = Array.from(e.dataTransfer.files);
-        handleFiles(files, category, container);
-    });
-
-    // File input change
-    input.addEventListener('change', (e) => {
-        if (!isAdminMode) return;
-        if (!ensureHostingConfigured()) return;
-        const files = Array.from(e.target.files);
-        handleFiles(files, category, container);
-    });
-});
-
-// Handle uploaded files
-function handleFiles(files, category, container) {
-    if (!isHostingConfigured()) {
-        alert('Hosting not configured. Configure Cloudinary and JSONBin in script.js to proceed.');
+async function extractTextFromImage(file) {
+    if (!window.Tesseract) {
+        agent.log('Tesseract not ready. Please reload to enable OCR.');
         return;
     }
-    files.forEach(async (file) => {
-        if (!file.type.startsWith('image/')) return;
-
-        // If Cloudinary config is provided, upload to Cloudinary for globally visible URLs
-        if (CLOUDINARY_CLOUD_NAME && CLOUDINARY_UPLOAD_PRESET) {
-            try {
-                const uploaded = await uploadToCloudinary(file, category);
-                const imageData = {
-                    id: Date.now() + Math.random(),
-                    src: uploaded.secureUrl,
-                    name: file.name,
-                    provider: 'cloudinary',
-                    publicId: uploaded.publicId,
-                    category
-                };
-                uploadedImages[category].push(imageData);
-                displayImage(imageData, category, container);
-                updateGallery();
-                await saveManifest();
-                saveToLocalStorage(); // optional local cache
-            } catch (err) {
-                console.error('Cloud upload failed.', err);
-                alert('Upload failed. Please check your Cloudinary credentials in script.js.');
+    agent.setState('OCR in progress…');
+    agent.log(`Running OCR for ${file.name}`);
+    const { data } = await Tesseract.recognize(file, 'eng+hin+tam+tel+kan+mal+ben+guj+mar+pan+asm+ori+urd', {
+        logger: info => {
+            if (info.status === 'recognizing text') {
+                agent.log(`OCR progress ${Math.round(info.progress * 100)}% for ${file.name}`);
             }
-            return;
-        }
-
-        alert('Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME and CLOUDINARY_UPLOAD_PRESET in script.js.');
-    });
-}
-
-// Display uploaded image
-function displayImage(imageData, category, container) {
-    const imageItem = document.createElement('div');
-    imageItem.className = 'uploaded-image-item';
-    imageItem.dataset.id = imageData.id;
-    imageItem.dataset.category = category;
-
-    imageItem.innerHTML = `
-        <img src="${imageData.src}" alt="${imageData.name}">
-        <button class="remove-image" style="${isAdminMode ? '' : 'display:none;'}" onclick="removeImage('${imageData.id}', '${category}')" title="Remove image">×</button>
-    `;
-
-    container.appendChild(imageItem);
-}
-
-// Remove image
-function removeImage(imageId, category) {
-    // Remove from array
-    uploadedImages[category] = uploadedImages[category].filter(
-        img => img.id !== imageId
-    );
-
-    // Remove from DOM
-    const imageItem = document.querySelector(
-        `.uploaded-image-item[data-id="${imageId}"]`
-    );
-    if (imageItem) {
-        imageItem.remove();
-    }
-
-    updateGallery();
-    saveToLocalStorage();
-    // Persist to shared manifest if configured
-    try { saveManifest(); } catch (_) {}
-}
-
-// Update gallery with all images
-function updateGallery() {
-    const galleryGrid = document.getElementById('gallery-grid');
-    // Remove only dynamically generated items, keep any static items in HTML
-    Array.from(galleryGrid.querySelectorAll('.gallery-item.generated')).forEach(el => el.remove());
-
-    // Collect all images from all categories
-    const allImages = [];
-    categories.forEach(category => {
-        uploadedImages[category].forEach(img => {
-            allImages.push({
-                ...img,
-                category: category
-            });
-        });
-    });
-
-    // Display in gallery
-    allImages.forEach(imageData => {
-        const galleryItem = document.createElement('div');
-        galleryItem.className = 'gallery-item generated';
-        galleryItem.innerHTML = `
-            <img src="${imageData.src}" alt="${imageData.name}">
-            ${isAdminMode ? `<button class="gallery-remove" title="Remove image" onclick="removeImage('${imageData.id}', '${imageData.category}')">×</button>` : ''}
-        `;
-        galleryGrid.appendChild(galleryItem);
-    });
-}
-
-// Navbar background on scroll
-window.addEventListener('scroll', () => {
-    const navbar = document.querySelector('.navbar');
-    if (window.scrollY > 50) {
-        navbar.style.background = 'rgba(15, 23, 42, 0.9)';
-        navbar.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)';
-    } else {
-        navbar.style.background = 'rgba(15, 23, 42, 0.75)';
-        navbar.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)';
-    }
-});
-
-// Intersection Observer for fade-in animations
-const observerOptions = {
-    threshold: 0.1,
-    rootMargin: '0px 0px -50px 0px'
-};
-
-const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-        if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-        }
-    });
-}, observerOptions);
-
-// Observe all sections
-document.querySelectorAll('.section').forEach(section => {
-    section.style.opacity = '0';
-    section.style.transform = 'translateY(30px)';
-    section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-    observer.observe(section);
-});
-
-// Make removeImage globally accessible
-window.removeImage = removeImage;
-
-// Save images to localStorage (optional - for persistence)
-function saveToLocalStorage() {
-    try {
-        localStorage.setItem('journeyImages', JSON.stringify(uploadedImages));
-    } catch (e) {
-        console.warn('Could not save to localStorage:', e);
-    }
-}
-
-// Load images from localStorage on page load
-function loadFromLocalStorage() {
-    try {
-        const saved = localStorage.getItem('journeyImages');
-        if (saved) {
-            const parsed = JSON.parse(saved);
-            categories.forEach(category => {
-                if (parsed[category]) {
-                    uploadedImages[category] = parsed[category];
-                    const container = document.getElementById(`${category}-images`);
-                    parsed[category].forEach(imageData => {
-                        displayImage(imageData, category, container);
-                    });
-                }
-            });
-            updateGallery();
-        }
-    } catch (e) {
-        console.warn('Could not load from localStorage:', e);
-    }
-}
-
-// ---- Remote Hosting Helpers ----
-async function uploadToCloudinary(file, category) {
-    const url = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/auto/upload`;
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-    formData.append('folder', `my-journey/${category}`);
-    const res = await fetch(url, { method: 'POST', body: formData });
-    if (!res.ok) throw new Error('Cloudinary upload failed');
-    const data = await res.json();
-    return { secureUrl: data.secure_url, publicId: data.public_id };
-}
-
-async function loadManifest() {
-    if (!JSONBIN_BIN_ID) throw new Error('Manifest not configured');
-    // Try with key (private bin), then without key (public bin)
-    let res = null;
-    try {
-        if (JSONBIN_API_KEY) {
-            res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
-                headers: { 'X-Master-Key': JSONBIN_API_KEY }
-            });
-        }
-        if (!res || !res.ok) {
-            res = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`);
-        }
-    } catch (e) {
-        throw new Error('Manifest load failed');
-    }
-    if (!res.ok) throw new Error('Manifest load failed');
-    const data = await res.json();
-    const parsed = data.record || {};
-    categories.forEach(category => {
-        if (parsed[category]) {
-            uploadedImages[category] = parsed[category];
-            const container = document.getElementById(`${category}-images`);
-            parsed[category].forEach(imageData => {
-                displayImage(imageData, category, container);
-            });
-        }
-    });
-    updateGallery();
-}
-
-async function saveManifest() {
-    if (!JSONBIN_BIN_ID || !JSONBIN_API_KEY) return; // allow working without manifest
-    await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-Master-Key': JSONBIN_API_KEY
         },
-        body: JSON.stringify(uploadedImages)
+        langPath: 'https://tessdata.projectnaptha.com/4.0.0'
     });
+    appendToSource(data.text, `${file.name} OCR`);
+    agent.setState('Idle');
 }
 
-// Initialize Admin Modal Elements
-function initAdminModal() {
-    adminModal = document.getElementById('admin-modal');
-    adminToggle = document.getElementById('admin-toggle');
-    adminPasswordInput = document.getElementById('admin-password');
-    adminLoginBtn = document.getElementById('admin-login-btn');
-    closeModal = document.querySelector('.close-modal');
-    
-    if (!adminModal || !adminToggle) return;
-    
-    adminToggle.addEventListener('click', () => {
-        if (isAdminMode) {
-            // Logout
-            isAdminMode = false;
-            localStorage.setItem('adminMode', 'false');
-            disableAdminMode();
-        } else {
-            // Show login modal
-            showAdminModal();
+async function transcribeAudioFile(file) {
+    const key = dom.speechKey.value.trim();
+    if (!key) {
+        agent.log(`Audio "${file.name}" uploaded. Add a speech-to-text key to transcribe automatically or use the mic button.`);
+        return;
+    }
+    const provider = dom.speechProvider.value;
+    const endpoint = provider === 'openai'
+        ? 'https://api.openai.com/v1/audio/transcriptions'
+        : 'https://api.groq.com/openai/v1/audio/transcriptions';
+    const model = provider === 'openai' ? 'whisper-1' : 'whisper-large-v3';
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    formData.append('model', model);
+    formData.append('response_format', 'json');
+    agent.setState('Transcribing audio…');
+    agent.log(`Uploading ${file.name} to ${provider.toUpperCase()} Whisper`);
+    const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${key}` },
+        body: formData
+    });
+    if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Speech API error: ${text}`);
+    }
+    const data = await response.json();
+    appendToSource(data.text, `${file.name} transcript`);
+    agent.setState('Idle');
+}
+
+async function translateWorkspace() {
+    const raw = dom.sourceText.value.trim();
+    if (!raw) return;
+    dom.translateBtn.disabled = true;
+    agent.setState('Translating…');
+    agent.log('Preparing request for Google Translate');
+    try {
+        const translated = await translateText(raw);
+        dom.resultText.textContent = translated;
+        agent.log('Translation completed.');
+        renderLanguageChips();
+        loadTtsAudio(translated);
+    } catch (error) {
+        console.error(error);
+        agent.log(`Translation failed: ${error.message}`);
+        dom.resultText.textContent = `⚠️ ${error.message}`;
+    } finally {
+        dom.translateBtn.disabled = dom.sourceText.value.trim().length === 0;
+        agent.setState('Idle');
+    }
+}
+
+async function translateText(text) {
+    const source = dom.sourceLang.value;
+    const target = dom.targetLang.value;
+    const key = dom.googleKey.value.trim();
+    if (!target) throw new Error('Select a target language.');
+
+    if (key) {
+        const response = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${key}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                q: text,
+                target,
+                source: source === 'auto' ? undefined : source,
+                format: 'text'
+            })
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.error?.message || 'Google API rejected the request.');
+        }
+        return data.data.translations.map(item => item.translatedText).join(' ');
+    }
+
+    const params = new URLSearchParams({
+        client: 'gtx',
+        sl: source === 'auto' ? 'auto' : source,
+        tl: target,
+        dt: 't',
+        q: text
+    });
+    const response = await fetch(`https://translate.googleapis.com/translate_a/single?${params.toString()}`);
+    if (!response.ok) throw new Error('Public Google endpoint blocked the request.');
+    const data = await response.json();
+    if (!Array.isArray(data)) throw new Error('Unexpected Google response.');
+    return data[0].map(item => item[0]).join('');
+}
+
+function loadTtsAudio(text) {
+    if (!text) return;
+    const url = buildTtsUrl(text, dom.targetLang.value);
+    dom.resultAudio.setAttribute('crossorigin', 'anonymous');
+    dom.resultAudio.setAttribute('referrerpolicy', 'no-referrer');
+    dom.resultAudio.src = url;
+    dom.resultAudio.onerror = () => {
+        agent.log('Google voice stream blocked. Tap again to use device voice fallback.');
+    };
+    dom.speakBtn.disabled = false;
+}
+
+function buildTtsUrl(text, lang) {
+    const chunk = text.slice(0, 190);
+    return `https://translate.googleapis.com/translate_tts?ie=UTF-8&client=tw-ob&tl=${lang}&q=${encodeURIComponent(chunk)}`;
+}
+
+function downloadTranslation() {
+    const content = dom.resultText.textContent.trim();
+    if (!content) {
+        agent.log('No translation to download yet.');
+        return;
+    }
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `translation-${dom.targetLang.value}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    agent.log('Translation saved to disk.');
+}
+
+function setupMic() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+        dom.micBtn.disabled = true;
+        dom.stopMicBtn.disabled = true;
+        dom.micStatus.textContent = 'Speech recognition not supported in this browser.';
+        return;
+    }
+    recognition = new SpeechRecognition();
+    recognition.lang = 'en-IN';
+    recognition.interimResults = true;
+    recognition.continuous = true;
+
+    recognition.onstart = () => {
+        isMicActive = true;
+        dom.micStatus.textContent = 'Listening… speak now.';
+        dom.micBtn.disabled = true;
+        dom.stopMicBtn.disabled = false;
+        agent.setState('Listening…');
+    };
+
+    recognition.onerror = (event) => {
+        agent.log(`Mic error: ${event.error}`);
+        stopMic();
+    };
+
+    recognition.onresult = (event) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            if (event.results[i].isFinal) {
+                transcript += `${event.results[i][0].transcript} `;
+            }
+        }
+        if (transcript.trim()) {
+            dom.micStatus.textContent = 'Speech captured. Tap translate when ready.';
+            appendToSource(transcript.trim(), 'Live mic');
+        }
+    };
+
+    recognition.onend = () => {
+        isMicActive = false;
+        dom.micBtn.disabled = false;
+        dom.stopMicBtn.disabled = true;
+        agent.setState('Idle');
+        dom.micStatus.textContent = 'Mic idle.';
+    };
+
+    dom.micBtn.addEventListener('click', () => {
+        if (isMicActive) return;
+        try {
+            recognition.start();
+        } catch (error) {
+            agent.log(`Mic failed to start: ${error.message}`);
         }
     });
-    
-    if (adminLoginBtn) {
-        adminLoginBtn.addEventListener('click', () => {
-            const password = adminPasswordInput.value;
-            if (password === ADMIN_PASSWORD) {
-                isAdminMode = true;
-                localStorage.setItem('adminMode', 'true');
-                enableAdminMode();
-                hideAdminModal();
-            } else {
-                alert('Incorrect password!');
-                adminPasswordInput.value = '';
-                adminPasswordInput.focus();
-            }
-        });
-    }
-    
-    if (adminPasswordInput) {
-        adminPasswordInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                adminLoginBtn.click();
-            }
-        });
-    }
-    
-    if (closeModal) {
-        closeModal.addEventListener('click', hideAdminModal);
-    }
-    
-    if (adminModal) {
-        adminModal.addEventListener('click', (e) => {
-            if (e.target === adminModal) {
-                hideAdminModal();
-            }
-        });
+
+    dom.stopMicBtn.addEventListener('click', stopMic);
+}
+
+function stopMic() {
+    if (recognition && isMicActive) {
+        recognition.stop();
     }
 }
 
-
-// Enable Admin Mode
-function enableAdminMode() {
-    if (adminToggle) {
-        adminToggle.textContent = '✅ Admin Mode';
-        adminToggle.classList.add('active');
-    }
-    
-    // Enable all upload areas
-    document.querySelectorAll('.upload-label').forEach(label => {
-        label.classList.remove('disabled');
-    });
-    
-    // Remove view-only messages
-    document.querySelectorAll('.view-only-message').forEach(msg => {
-        msg.remove();
-    });
-
-    // Show delete buttons
-    document.querySelectorAll('.remove-image').forEach(btn => {
-        btn.style.display = '';
-    });
+function wireActions() {
+    dom.translateBtn.addEventListener('click', translateWorkspace);
+    dom.speakBtn.addEventListener('click', handleSpeakRequest);
+    dom.downloadBtn.addEventListener('click', downloadTranslation);
 }
 
-// Disable Admin Mode
-function disableAdminMode() {
-    if (adminToggle) {
-        adminToggle.textContent = '🔐 Admin';
-        adminToggle.classList.remove('active');
+async function handleSpeakRequest() {
+    const text = dom.resultText.textContent.trim();
+    if (!text) {
+        agent.log('Nothing to read yet.');
+        return;
     }
-    
-    // Disable all upload areas
-    document.querySelectorAll('.upload-label').forEach(label => {
-        label.classList.add('disabled');
-    });
-    
-    // Add view-only messages to each upload card
-    document.querySelectorAll('.image-upload-card').forEach(card => {
-        // Check if message already exists
-        if (!card.querySelector('.view-only-message')) {
-            const message = document.createElement('div');
-            message.className = 'view-only-message';
-            message.innerHTML = '<p>👀 View Only - Login as admin to upload images</p>';
-            card.appendChild(message);
+
+    dom.speakBtn.disabled = true;
+    setSpeakBtnLabel('🔊 Loading Google voice…');
+
+    try {
+        await dom.resultAudio.play();
+        setSpeakBtnLabel('🔊 Playing via Google');
+    } catch (error) {
+        agent.log(`Google audio play failed (${error.name}). Switching to fallback voice.`);
+        try {
+            playWithSpeechSynthesis(text, dom.targetLang.value);
+            setSpeakBtnLabel('🗣️ Playing via device voice');
+            setTimeout(() => setSpeakBtnLabel('🔊 Play via Google Voice'), 1500);
+        } catch (fallbackError) {
+            agent.log(`Speech synthesis unavailable: ${fallbackError.message}`);
+            alert('Audio playback is blocked in this browser.');
+            setSpeakBtnLabel('🔇 Audio unavailable');
         }
-    });
-
-    // Hide delete buttons
-    document.querySelectorAll('.remove-image').forEach(btn => {
-        btn.style.display = 'none';
-    });
+    } finally {
+        dom.speakBtn.disabled = false;
+    }
 }
 
-// Load on page load
-document.addEventListener('DOMContentLoaded', () => {
-    initAdminModal();
-    checkAdminStatus();
-    // Try to load from remote manifest first; fallback to local cache
-    loadManifest().catch(() => {
-        loadFromLocalStorage();
-    });
+function playWithSpeechSynthesis(text, langCode) {
+    if (!('speechSynthesis' in window)) {
+        throw new Error('Speech synthesis not supported.');
+    }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text.slice(0, 390));
+    utterance.lang = speechLocaleMap[langCode] || langCode || 'en-IN';
+    utterance.rate = 0.95;
+    utterance.pitch = 1;
+    window.speechSynthesis.speak(utterance);
+}
+
+function setSpeakBtnLabel(label) {
+    dom.speakBtn.textContent = label;
+}
+
+dom.resultAudio.addEventListener('ended', () => {
+    setSpeakBtnLabel('🔊 Play via Google Voice');
 });
+
+function init() {
+    initLanguageSelects();
+    wireDialogs();
+    wireInputs();
+    setupMic();
+    wireActions();
+    updateCharCount();
+    updateTranslateButton();
+    agent.log('Agent warmed up. Upload or speak to begin.');
+}
+
+document.addEventListener('DOMContentLoaded', init);
 
